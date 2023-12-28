@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScriptAPI npm(s) - WavePlayz</title>
+<style>
+
+html {
+	background: hsl(0, 0%, 8%);
+	color: #ddd;
+	font-family: monospace;
+}
+
+body {
+	padding: 0;
+	margin: 0;
+}
+
+div {
+	background: hsl(0, 0%, 10%);
+	display: flex;
+	flex-direction: column;
+	gap: 1em;
+	padding: 1em;
+	margin: 2em;
+	border-radius: 10px;
+	box-shadow: 0 0 1.5em rgba(0,0,0,.25);
+	transition: .125s;
+}
+
+div > :nth-child(even) {
+	color: orange;
+}
+
+.loading {
+	opacity: .5;
+	transform: scale(.95);
+}
+
+
+</style>
+</head>
+
+<body>
+
+<script>
+
+const BASE_URL = "https://registry.npmjs.org/"
+const NAMESPACE = "@minecraft/"
+const MODULES = [
+	"server",
+	"server-ui",
+	"server-gametest",
+	"server-admin",
+	"server-net",
+	"server-editor",
+	"vanilla-data",
+	"common"
+]
+
+const STABLE_RE = /^(\d+\.){2}\d+$/g
+const STABLE_BETA_RE = /^(\d+\.){2}\d+.*stable$/g
+const PREVIEW_RE = /^(\d+\.){2}\d+-rc.*preview/g
+const PREVIEW_BETA_RE = /^(\d+\.){2}\d+-beta.*preview/g
+
+const RE = [
+	[ "Stable", STABLE_RE ],
+	[ "Stable Beta", STABLE_BETA_RE ],
+	[ "Preview", PREVIEW_RE ],
+	[ "Preview Beta", PREVIEW_BETA_RE ]
+]
+
+
+MODULES.forEach( module => {
+	let pkg = NAMESPACE + module
+	let url = BASE_URL + pkg
+	
+	let div = document.createElement("div")
+	let { classList } = div
+	div.innerHTML = `<b> ${ pkg } </b>`
+	
+	div.onclick = async function() {
+		classList.add( "loading" )
+		
+		let content = await fetch(url)
+		let { time } = await content.json()
+		let keys = Object.keys(time)
+		
+		let vers = []
+	
+		keys.forEach( value => {
+			let i = RE.findIndex( v => v[1].test(value) )
+		
+			if (i >= 0)
+				vers[ i ] = value
+		} )
+	
+	
+		for (let key in vers) {
+			let d0 = document.createElement( "span" )
+			d0.innerHTML = RE[key][0]
+			div.append(d0)
+			
+			let d1 = document.createElement( "span" )
+			d1.innerHTML = "npm i " + pkg + "@" + vers[key]
+			d1.onclick = () => prompt( "Copy", d1.innerHTML )
+			
+			div.append(d1)
+		}
+		
+		classList.remove( "loading" )
+		
+		this.onclick = null
+		
+	}
+	
+	document.body.append( div )
+} )
+
+
+</script>
+</body>
+</html>
