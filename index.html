@@ -85,9 +85,14 @@ MODULES.forEach( module => {
 	div.onclick = async function() {
 		classList.add( "loading" )
 		
-		let content = await fetch(url)
-		let { time } = await content.json()
-		let keys = Object.keys(time)
+		let content = await fetch(url, {
+			headers: {
+				"Accept": "application/vnd.npm.install-v1+json"
+			}
+		})
+		
+		let { versions } = await content.json()
+		let keys = Object.keys(versions)
 		
 		let vers = []
 	
