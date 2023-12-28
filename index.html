@@ -21,17 +21,20 @@ body {
 div {
 	background: hsl(0, 0%, 10%);
 	display: flex;
-	flex-direction: column;
+	box-shadow: 0 0 1.5em rgba(0,0,0,.25);
 	gap: 1em;
+	border-radius: 5px;
+}
+
+.module {
+	flex-direction: column;
 	padding: 1em;
 	margin: 2em 1em;
-	border-radius: 5px;
-	box-shadow: 0 0 1.5em rgba(0,0,0,.25);
 	transition: .125s;
 	border-left: 5px solid hsl(0, 0%, 14%);
 }
 
-div > :nth-child(even) {
+.module > :nth-child(even) {
 	color: orange;
 }
 
@@ -40,13 +43,27 @@ div > :nth-child(even) {
 	transform: scale(.95);
 }
 
+#app-info {
+	position: fixed;
+	bottom: 1em;
+	right: 1em;
+	padding: .5em 1em;
+	flex-direction: row;
+	font-size: smaller;
+	border: .05em solid rgba(0,0,0,.25);
+}
+
 
 </style>
 </head>
 
 <body>
 
-<small>version: 0.1.3</small>
+
+<div id="app-info">
+	<i>v0.1.4</i>
+	<i>@WavePlayz</i>
+</div>
 
 <script>
 
@@ -82,18 +99,36 @@ MODULES.forEach( module => {
 	
 	let div = document.createElement("div")
 	let { classList } = div
+	classList.add("module")
+	
 	div.innerHTML = `<b> ${ pkg } </b>`
 	
-	div.onclick = async function() {
+	div.onclick = async function func() {
+		this.onclick = null
+		
 		classList.add( "loading" )
 		
-		let content = await fetch(url, {
-			headers: {
-				"Accept": "application/vnd.npm.install-v1+json"
-			}
-		})
+		let content, versions
+
+		try {
+			content = await fetch(url, {
+				headers: {
+					"Accept": "application/vnd.npm.install-v1+json"
+				}
+			})
+			
+			let json = await content.json()
+			versions = json.versions
+		} catch (err) {
+			this.onclick = func
+			
+			alert(err.stack)
+			
+			classList.remove( "loading" )
+		}
 		
-		let { versions } = await content.json()
+		classList.remove( "loading" )
+		
 		let keys = Object.keys(versions)
 		
 		let vers = []
@@ -117,10 +152,6 @@ MODULES.forEach( module => {
 			
 			div.append(d1)
 		}
-		
-		classList.remove( "loading" )
-		
-		this.onclick = null
 		
 	}
 	
