@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>ScriptAPI NPMs - WavePlayz</title>
-		<style>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScriptAPI npm(s) - WavePlayz</title>
+<style>
 
 html {
 	background: hsl(0, 0%, 8%);
@@ -13,296 +13,152 @@ html {
 	font-family: monospace;
 }
 
-
-body, div {
-	display: flex;
-	flex-direction: column;
-	border-radius: 10px;
-	gap: .5em;
+body {
+	padding: 0;
+	margin: 0;
 }
 
-body {
-	padding: calc( 1.25vh * 6 ) 0;
-	align-items: center;
-	gap: 1.25vh;
+div {
+	background: hsl(0, 0%, 10%);
+	display: flex;
+	box-shadow: 0 0 1.5em rgba(0,0,0,.25);
+	gap: 1em;
+	border-radius: 5px;
 }
 
 .module {
-	background: hsl(0, 0%, 12%);
-	margin: .5em .75em;
-	padding: max(1.25em, 1.25vh);
-	box-shadow: 
-		-2px 2px 0px hsl(0, 0%, 6%) inset,
-		2px -2px 0px hsl(0, 0%, 14%) inset,
-		0 0 5px 5px hsl(0, 0%, 8%)
-	;
-	transition: 500ms;
+	flex-direction: column;
+	padding: 1em;
+	margin: 2em 1em;
+	transition: .125s;
+	border-left: 5px solid hsl(0, 0%, 14%);
 }
 
-.module b~b {
+.module > :nth-child(even) {
 	color: orange;
-	margin-top: .75em;
-}
-
-.module span {
-	opacity: .75;
-}
-
-#info {
-	flex-direction: row;
-	font-size: smaller;
-	z-index: 1;
-	background: black;
-	padding: 1em 2em;
-	gap: 2ch;
 }
 
 .loading {
 	opacity: .5;
 	transform: scale(.95);
-	filter: invert(50%) brightness(25%);
-	background: hsl(0, 0%, 6%);
 }
 
-:hover {
-	color: white;
+#app-info {
+	position: fixed;
+	bottom: 1em;
+	right: 1em;
+	padding: .5em 1em;
+	flex-direction: row;
+	font-size: smaller;
+	border: .05em solid rgba(0,0,0,.25);
 }
 
 
-		</style>
-	</head>
-	
-	<body>
+</style>
+</head>
 
-<div id=info>
-	<b>WavePlayz</b>
-	<span>v0.2.0</span>
+<body>
+
+
+<div id="app-info">
+	<i>v0.1.4</i>
+	<i>@WavePlayz</i>
 </div>
 
-<div>
-<a href="#" onclick=fetchAll()>Fetch All</a>
-
-</div>
-		<script>
-
-console.log()
+<script>
 
 const BASE_URL = "https://registry.npmjs.org/"
-const NAMESPACE = "@minecraft"
+const NAMESPACE = "@minecraft/"
 const MODULES = [
 	"server",
 	"server-ui",
 	"server-gametest",
-	"server-editor",
 	"server-admin",
 	"server-net",
+	"server-editor",
 	"vanilla-data",
 	"common"
 ]
 
-const STABLE_REG = /^(\d+\.){2}\d+$/g
-const STABLE_BETA_REG = /^(\d+\.){2}\d+.*stable$/g
-const PREVIEW_REG = /^(\d+\.){2}\d+-rc.*preview/g
-const PREVIEW_BETA_REG = /^(\d+\.){2}\d+-beta.*preview/g
+const STABLE_RE = /^(\d+\.){2}\d+$/g
+const STABLE_BETA_RE = /^(\d+\.){2}\d+.*stable$/g
+const PREVIEW_RE = /^(\d+\.){2}\d+-rc.*preview/g
+const PREVIEW_BETA_RE = /^(\d+\.){2}\d+-beta.*preview/g
 
-const REG = [
-	[ "Stable", STABLE_REG ],
-	[ "Stable Beta", STABLE_BETA_REG ],
-	[ "Preview", PREVIEW_REG ],
-	[ "Preview Beta", PREVIEW_BETA_REG ]
+const RE = [
+	[ "Stable", STABLE_RE ],
+	[ "Stable Beta", STABLE_BETA_RE ],
+	[ "Preview", PREVIEW_RE ],
+	[ "Preview Beta", PREVIEW_BETA_RE ]
 ]
 
-function elm (value) {
-	return document.createElement( value )
-}
 
-let moduleElms = MODULES.map( module => {
-	let package = NAMESPACE + "/" + module
-	let url = BASE_URL + package
+MODULES.forEach( module => {
+	let pkg = NAMESPACE + module
+	let url = BASE_URL + pkg
 	
-	let div = elm( "div" )
+	let div = document.createElement("div")
 	let { classList } = div
 	classList.add("module")
 	
-	div.innerHTML = `<b>${ package }</b>`
+	div.innerHTML = `<b> ${ pkg } </b>`
 	
-	div.onclick = async function run() {
+	div.onclick = async function func() {
 		this.onclick = null
 		
 		classList.add( "loading" )
 		
-		let versions
+		let content, versions
 
 		try {
-			versions = await fetchModuleVersions( url )
+			content = await fetch(url, {
+				headers: {
+					"Accept": "application/vnd.npm.install-v1+json"
+				}
+			})
 			
+			let json = await content.json()
+			versions = json.versions
 		} catch (err) {
-			this.onclick = run
+			this.onclick = func
 			
 			alert(err.stack)
+			
+			classList.remove( "loading" )
 		}
 		
 		classList.remove( "loading" )
 		
-		if (! versions?.length ) return;
+		let keys = Object.keys(versions)
 		
+		let vers = []
+	
+		keys.forEach( value => {
+			let i = RE.findIndex( v => v[1].test(value) )
 		
-		
-		for (let [ label, version ] of indexVersions(versions) ) {
-			let npmString = "npm i " + package + "@" + version
+			if (i >= 0)
+				vers[ i ] = value
+		} )
+	
+	
+		for (let key in vers) {
+			let d0 = document.createElement( "span" )
+			d0.innerHTML = RE[key][0]
+			div.append(d0)
 			
-			let labelElm = elm( "b" )
-			labelElm.innerHTML = label
-			div.append(labelElm)
+			let d1 = document.createElement( "span" )
+			d1.innerHTML = "npm i " + pkg + "@" + vers[key]
+			d1.onclick = () => prompt( "Copy", d1.innerHTML )
 			
-			let versionElm = elm( "span" )
-			versionElm.innerHTML = npmString
-			versionElm.onclick = () => 
-				copy( npmString )
-					.then( () => popup("Copied<br>" + npmString) )
-					.catch( () => 
-						prompt( "Copy", npmString ) 
-					);
-			
-			div.append(versionElm)
+			div.append(d1)
 		}
 		
 	}
 	
 	document.body.append( div )
-	
-	return div
 } )
 
-async function fetchModuleVersions (url) {
-	let content = await fetch( url, {
-		headers: {
-			// get trimed response
-			"Accept": "application/vnd.npm.install-v1+json"
-		}
-	})
-	
-	let json = await content.json()
-	
-	return Object.keys( json.versions )
-}
 
-function indexVersions (versions) {
-	let index = []
-	
-	versions.forEach( version => {
-		REG.find( ([ label, reg ], i) => {
-			index[i] = reg.test( version )
-				? [ label, version ]
-				: []
-		} )
-	} )
-	
-	console.log( index )
-	
-	return index
-}
-
-// from stack-overflow comment
-function copy(text) {
-	return new Promise((resolve, reject) => {
-		if (typeof navigator !== "undefined" && typeof navigator.clipboard !== "undefined" && navigator.permissions !== "undefined") {
-			const type = "text/plain";
-			const blob = new Blob([text], { type });
-			const data = [new ClipboardItem({ [type]: blob })];
-			navigator.permissions.query({name: "clipboard-write"}).then((permission) => {
-				if (permission.state === "granted" || permission.state === "prompt") {
-					navigator.clipboard.write(data).then(resolve, reject).catch(reject);
-				}
-				else {
-					reject(new Error("Permission not granted!"));
-				}
-			});
-		}
-		else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
-			var textarea = document.createElement("textarea");
-			textarea.textContent = text;
-			textarea.style.position = "fixed";
-			textarea.style.width = '2em';
-			textarea.style.height = '2em';
-			textarea.style.padding = 0;
-			textarea.style.border = 'none';
-			textarea.style.outline = 'none';
-			textarea.style.boxShadow = 'none';
-			textarea.style.background = 'transparent';
-			document.body.appendChild(textarea);
-			textarea.focus();
-			textarea.select();
-			try {
-				document.execCommand("copy");
-				document.body.removeChild(textarea);
-				resolve();
-			}
-			catch (e) {
-				document.body.removeChild(textarea);
-				reject(e);
-			}
-		}
-		else {
-			reject(new Error("None of copying methods are supported by this browser!"));
-		}
-	});
-}
-
-
-function fetchAll(callback) {
-	while (moduleElms.length) {
-		moduleElms.pop()?.click()
-	}
-}
-
-function popup (content) {
-	if (! popup.stack) {
-		let a = elm( "div" )
-		
-		Object.assign( a.style, {
-			position: "fixed",
-			top: 0,
-			left: 0,
-			right: 0,
-			display: "flex",
-			flexDirection: "column",
-			alignItems: "end",
-			//justifyContent: "center"
-			gap: "1em",
-			zIndex: 2,
-			padding: "10%"
-		})
-		
-		popup.stack = a
-		
-		document.body.append(popup.stack)
-	}
-	
-	let b = elm( "div" )
-	Object.assign( b.style, {
-		background: "black",
-		padding: ".5em 1em",
-		transition: "500ms",
-		opacity: 0
-	})
-	b.innerHTML = content
-	
-	setTimeout( () => (b.style.opacity = 1), 1 )
-	popup.stack.append(b)
-	
-	setTimeout( () => {
-		b.ontransitionend = () => b.remove()
-		b.style.opacity = 0
-	}, 1000 * 10 )
-}
-
-popup("Created By WavePlayz")
-
-		</script>
-	</body>
+</script>
+</body>
 </html>
-
-
-
-
