@@ -363,8 +363,6 @@ async function fetchJson( url, headers ) {
 	try {
 		if (json) return;
 		
-		await delay(5000*Math.random())
-		
 		let res = await fetch( url, { headers } )
 		json = await res.json()
 		
