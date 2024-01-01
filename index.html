@@ -1,162 +1,380 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ScriptAPI npm(s) - WavePlayz</title>
+<title>ScriptAPI NPMs - WavePlayz</title>
 <style>
 
 html {
-	background: hsl(0, 0%, 8%);
+	background: hsl(0, 0%, 10%);
 	color: #ddd;
 	font-family: monospace;
+	line-height: 1.625;
+	padding: 10% 5%;
 }
 
 body {
-	padding: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 	margin: 0;
+	min-height: 100%;
+	gap: 3vh;
 }
 
 div {
-	background: hsl(0, 0%, 10%);
+	border-radius: .75rem;
+}
+
+#moduleElms {
 	display: flex;
-	box-shadow: 0 0 1.5em rgba(0,0,0,.25);
-	gap: 1em;
-	border-radius: 5px;
-}
-
-.module {
 	flex-direction: column;
-	padding: 1em;
-	margin: 2em 1em;
-	transition: .125s;
-	border-left: 5px solid hsl(0, 0%, 14%);
+	align-items: center;
+	gap: 1.75vh;
 }
 
-.module > :nth-child(even) {
+#moduleElms > div {
+	display: flex;
+	flex-direction: column;
+	//gap: .75em;
+	background: hsl(0, 0%, 14%);
+	box-shadow: 
+		-2px 2px 0px hsl(0, 0%, 12%) inset,
+		2px -2px 0px hsl(0, 0%, 16%) inset,
+		0 0 5px 2.5px hsl(0, 0%, 10%)
+	;
+	transition: 750ms;
+	//white-space: break;
+	padding: .75em 1.25em;
+}
+
+#moduleElms > div > div b {
 	color: orange;
+}
+
+#moduleElms > div > span {
+	color: white;
+	font-size: 1.125em
+}
+
+#moduleElms > div > div {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 1em;
+}
+
+#moduleElms > div > div a {
+	font-size: smaller;
 }
 
 .loading {
 	opacity: .5;
-	transform: scale(.95);
+	transform: scale(.98);
+	filter: invert(50%) brightness(25%);
+	background: hsl(0, 0%, 6%);
 }
 
-#app-info {
-	position: fixed;
-	bottom: 1em;
-	right: 1em;
-	padding: .5em 1em;
-	flex-direction: row;
-	font-size: smaller;
-	border: .05em solid rgba(0,0,0,.25);
+small {
+	opacity: .5;
 }
 
 
 </style>
-</head>
-
 <body>
 
-
-<div id="app-info">
-	<i>v0.1.4</i>
-	<i>@WavePlayz</i>
+<div id=info>
+	<b>WavePlayz</b>
+	<span>v0.2.0</span>
 </div>
+
+<div id=actions>
+	<a href="#" onclick="fetchAll()">Fetch all</a>
+</div>
+
+<div id=moduleElms></div>
 
 <script>
 
+function elm (name = "div") {
+	return document.createElement( name )
+}
+
+
+function popup (content, head) {
+	if (! popup.stack) {
+		let a = elm( "div" )
+		
+		Object.assign( a.style, {
+			position: "fixed",
+			top: 0,
+			//left: 0,
+			right: 0,
+			display: "flex",
+			flexDirection: "column",
+			alignItems: "end",
+			//justifyContent: "center"
+			gap: "1em",
+			zIndex: 2,
+			//padding: "1em"
+		})
+		
+		popup.stack = a
+		
+		document.body.append(popup.stack)
+	}
+	
+	let b = elm( "div" )
+	Object.assign( b.style, {
+		background: "black",
+		padding: ".75em",
+		margin: ".5em",
+		transition: "250ms",
+		opacity: 0
+	})
+	b.innerHTML = (head ? "<small>"+ head +"</small><br>" : "") + content
+	
+	
+	
+	setTimeout( () => (b.style.opacity = 1), 1 )
+	popup.stack.append(b)
+	
+	function rm() {
+		b.ontransitionend = () => b.remove()
+		b.style.opacity = 0
+	}
+	
+	let id = setTimeout( rm, 1000 * 5 )
+	
+	b.onclick = function() {
+		clearTimeout( id )
+		rm()
+	}
+}
+
+function readableDate (date) {
+	let diff = Date.now() - date.getTime()
+	let ms = Math.abs(diff)
+	
+	let n = (
+		ms < 1000
+			? ms
+			: (s = Math.floor(ms / 1000)) < 60
+				? s + " sec"
+				: (m = Math.floor(s / 60)) < 60
+					? m + " min"
+					: (h = Math.floor(m / 60)) < 24
+						? h + " hour"
+						: (Math.floor(h / 24)) + " day"
+	) + "(s)"
+	
+	return diff < 0 ? "in " + n : n + " ago"
+}
+
+// from stack-overflow comment
+function copy(text) {
+	return new Promise((resolve, reject) => {
+		if (typeof navigator !== "undefined" && typeof navigator.clipboard !== "undefined" && navigator.permissions !== "undefined") {
+			const type = "text/plain";
+			const blob = new Blob([text], { type });
+			const data = [new ClipboardItem({ [type]: blob })];
+			navigator.permissions.query({name: "clipboard-write"}).then((permission) => {
+				if (permission.state === "granted" || permission.state === "prompt") {
+					navigator.clipboard.write(data).then(resolve, reject).catch(reject);
+				}
+				else {
+					reject(new Error("Permission not granted!"));
+				}
+			});
+		}
+		else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+			var textarea = document.createElement("textarea");
+			textarea.textContent = text;
+			textarea.style.position = "fixed";
+			textarea.style.width = '2em';
+			textarea.style.height = '2em';
+			textarea.style.padding = 0;
+			textarea.style.border = 'none';
+			textarea.style.outline = 'none';
+			textarea.style.boxShadow = 'none';
+			textarea.style.background = 'transparent';
+			document.body.appendChild(textarea);
+			textarea.focus();
+			textarea.select();
+			try {
+				document.execCommand("copy");
+				document.body.removeChild(textarea);
+				resolve();
+			}
+			catch (e) {
+				document.body.removeChild(textarea);
+				reject(e);
+			}
+		}
+		else {
+			reject(new Error("None of copying methods are supported by this browser!"));
+		}
+	});
+}
+
+const delay = n => new Promise(r => setTimeout(r, n) );
+
+</script>
+
+<script>
 const BASE_URL = "https://registry.npmjs.org/"
-const NAMESPACE = "@minecraft/"
-const MODULES = [
+const NAMESPACE = "@minecraft"
+
+const moduleNames = [
 	"server",
 	"server-ui",
 	"server-gametest",
+	"server-editor",
 	"server-admin",
 	"server-net",
-	"server-editor",
 	"vanilla-data",
 	"common"
 ]
+const STABLE_REG = /^(\d+\.){2}\d+$/g
+const STABLE_BETA_REG = /^(\d+\.){2}\d+.*stable$/g
+const PREVIEW_REG = /^(\d+\.){2}\d+-rc.*preview/g
+const PREVIEW_BETA_REG = /^(\d+\.){2}\d+-beta.*preview/g
 
-const STABLE_RE = /^(\d+\.){2}\d+$/g
-const STABLE_BETA_RE = /^(\d+\.){2}\d+.*stable$/g
-const PREVIEW_RE = /^(\d+\.){2}\d+-rc.*preview/g
-const PREVIEW_BETA_RE = /^(\d+\.){2}\d+-beta.*preview/g
+const VERSION_REGS = [ STABLE_REG, STABLE_BETA_REG, PREVIEW_REG, PREVIEW_BETA_REG ]
 
-const RE = [
-	[ "Stable", STABLE_RE ],
-	[ "Stable Beta", STABLE_BETA_RE ],
-	[ "Preview", PREVIEW_RE ],
-	[ "Preview Beta", PREVIEW_BETA_RE ]
-]
+const getVersionIndex = v => VERSION_REGS.findIndex( re => re.test( v ) )
 
-
-MODULES.forEach( module => {
-	let pkg = NAMESPACE + module
-	let url = BASE_URL + pkg
+function indexVersion (versions) {
+	let versionIndex = []
 	
-	let div = document.createElement("div")
-	let { classList } = div
-	classList.add("module")
+	for (let version in versions) {
+		let index = getVersionIndex(version)
+			
+		if (index >= 0) versionIndex[index] = { version, data: versions[version] }
+	}
 	
-	div.innerHTML = `<b> ${ pkg } </b>`
+	return versionIndex
+}
+
+function buildVersionHead(i, tarballLink) {
+	let div = elm()
+			
+	let labelElm = elm( "b" )
+	labelElm.innerHTML = [ "Stable", "Stable Beta", "Preview", "Preview Beta" ][ i ]
+	div.append( labelElm )
 	
-	div.onclick = async function func() {
-		this.onclick = null
+	let tarbalElm = elm( "a" )
+	tarbalElm.innerText = "Download"
+	tarbalElm.setAttribute( "href", tarballLink )
+	div.append( tarbalElm )
+	
+	return div
+}
+
+function buildVersionNpm (npmString) {
+	let versionElm = elm( "span" )
+	versionElm.innerHTML = npmString
+	versionElm.onclick = () => 
+		copy( npmString )
+			.then( () => popup( npmString, "Copied") )
+			.catch( () => 
+				prompt( "Copy", npmString ) 
+			);
+	return versionElm
+}
+
+function appendVersion (moduleElm, versions, npmBase) {
+	let versionIndex = indexVersion( versions )
+	
+	for (let i in versionIndex) {
+		let value = versionIndex[i]
+			
+		if (! value) continue;
+		
+		let { version, data } = value
+				
+		let versionData = versions[ version ]
+		
+		let npmString = npmBase + version
+		
+		moduleElm.append( buildVersionHead(i, data.dist.tarball) )
+		
+		moduleElm.append( buildVersionNpm(npmString) )
+	} 
+}
+
+moduleNames.map( moduleName => {
+	let package = NAMESPACE + "/" + moduleName
+	let url = BASE_URL + package
+	let npmBase = "npm i " + package + "@"
+	
+	let moduleElm = elm()
+	let { classList } = moduleElm
+	
+	
+	let head = elm("b")
+	head.innerText = moduleName
+	//head.append(nameElm)
+	
+	moduleElm.onclick = async function run() {
+		if (classList.contains("loading")) return;
 		
 		classList.add( "loading" )
 		
-		let content, versions
-
-		try {
-			content = await fetch(url, {
-				headers: {
-					"Accept": "application/vnd.npm.install-v1+json"
-				}
-			})
-			
-			let json = await content.json()
-			versions = json.versions
-		} catch (err) {
-			this.onclick = func
-			
-			alert(err.stack)
-			
-			classList.remove( "loading" )
-		}
+		let json = await fetchJson( url, { 
+			// get trimed response
+			"Accept": "application/vnd.npm.install-v1+json"
+		} )
 		
 		classList.remove( "loading" )
 		
-		let keys = Object.keys(versions)
+		if (! json) 
+			return popup( url, "Response error" );
 		
-		let vers = []
-	
-		keys.forEach( value => {
-			let i = RE.findIndex( v => v[1].test(value) )
+		this.onclick = null
 		
-			if (i >= 0)
-				vers[ i ] = value
-		} )
-	
-	
-		for (let key in vers) {
-			let d0 = document.createElement( "span" )
-			d0.innerHTML = RE[key][0]
-			div.append(d0)
-			
-			let d1 = document.createElement( "span" )
-			d1.innerHTML = "npm i " + pkg + "@" + vers[key]
-			d1.onclick = () => prompt( "Copy", d1.innerHTML )
-			
-			div.append(d1)
-		}
+		let { modified, versions } = json
 		
+		let modifiedElm = elm("small")
+		modifiedElm.innerText = "Update " + readableDate(new Date( modified ))
+		modifiedElm.style.marginLeft = "1em"
+		head.append( modifiedElm )
+		
+		appendVersion(moduleElm, versions, npmBase)
 	}
 	
-	document.body.append( div )
+	moduleElm.append( head )
+	moduleElms.append( moduleElm )
 } )
+
+async function fetchAll (callback) {
+	for (let moduleElm of moduleElms.children) {
+		moduleElm.click()
+		await delay(125)
+	}
+}
+
+
+async function fetchJson( url, headers ) {
+	let json = sessionStorage.getItem(url)
+	
+	try {
+		if (json) return;
+		
+		await delay(5000*Math.random())
+		
+		let res = await fetch( url, { headers } )
+		json = await res.json()
+		
+		sessionStorage.setItem(url, json)
+	} catch (err) {
+		console.error(err)
+	}
+	
+	return json 
+}
 
 
 </script>
