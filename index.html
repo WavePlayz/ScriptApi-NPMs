@@ -364,10 +364,12 @@ async function fetchJson( url, headers ) {
 	try {
 		json = JSON.parse( ress )
 	} catch {}
+
+popup( (typeof json) + ' hmm ')
 	
 	try {
 		if (json) return
-		popup(' hmm ')
+		
 		let res = await fetch( url, { headers } )
 		
 		json = await res.json()
