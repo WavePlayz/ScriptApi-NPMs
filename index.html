@@ -360,12 +360,12 @@ async function fetchAll (callback) {
 async function fetchJson( url, headers ) {
 	let json
 	let ress = sessionStorage.getItem(url)
-
-popup(ress)
 	
 	try {
 		json = JSON.parse( ress )
 	} catch {}
+
+popup(ress)
 	
 	try {
 		if (json) return
