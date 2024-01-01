@@ -359,9 +359,12 @@ async function fetchAll (callback) {
 
 async function fetchJson( url, headers ) {
 	let json
+	let ress = sessionStorage.getItem(url)
+
+popup(ress)
 	
 	try {
-		json = JSON.parse( sessionStorage.getItem(url) )
+		json = JSON.parse( ress )
 	} catch {}
 	
 	try {
