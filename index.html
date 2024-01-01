@@ -87,7 +87,7 @@ small {
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.2.0</span>
+	<span>v0.2.2</span>
 </div>
 
 <div id=actions>
@@ -361,12 +361,15 @@ async function fetchJson( url, headers ) {
 	let json = sessionStorage.getItem(url)
 	
 	try {
-		if (json) return;
+		if (json) return json = JSON.parse(json);
+		
+		await delay(5000*Math.random())
 		
 		let res = await fetch( url, { headers } )
+		
 		json = await res.json()
 		
-		sessionStorage.setItem(url, json)
+		sessionStorage.setItem(url, JSON.stringify(json) )
 	} catch (err) {
 		console.error(err)
 	}
