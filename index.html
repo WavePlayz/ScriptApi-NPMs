@@ -329,7 +329,7 @@ moduleNames.map( moduleName => {
 		} )
 		
 		classList.remove( "loading" )
-		popup(json)
+		
 		if (! json) 
 			return popup( url, "Response error" );
 		
@@ -358,23 +358,16 @@ async function fetchAll (callback) {
 
 
 async function fetchJson( url, headers ) {
-	let json
-	let ress = sessionStorage.getItem(url)
+	let json = sessionStorage.getItem(url)
+	
+	if (json) return JSON.parse( json )
 	
 	try {
-		json = JSON.parse( ress )
-	} catch {}
-
-popup( (typeof json) + ' hmm ')
-	
-	try {
-		if (json) return
-		
 		let res = await fetch( url, { headers } )
 		
 		json = await res.json()
 		
-		sessionStorage.setItem(url, JSON.stringify(json) )
+		sessionStorage.setItem( url, JSON.stringify(json) )
 	} catch (err) {
 		console.error(err)
 	}
