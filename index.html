@@ -12,7 +12,7 @@ html {
 	font-family: monospace;
 	line-height: 1.625;
 	padding: 10% 5%;
-	font-size: calc(12.5px + 0.390625vw);
+	font-size: calc(.75rem + 0.390625vw);
 }
 
 body {
@@ -101,7 +101,7 @@ a {
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.3.1</span>
+	<span>v0.3.2</span>
 </div>
 
 
@@ -147,7 +147,7 @@ function popup (content, head) {
 			//justifyContent: "center"
 			gap: "1em",
 			zIndex: 2,
-			padding: "1em"
+			padding: "2.5vw"
 		})
 		
 		popup.stack = a
@@ -343,6 +343,9 @@ function appendVersion (moduleElm, versions, npmBase) {
 	} 
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+let idElm = (v, e=moduleElms) => e.querySelector( "#" + v )
+
 moduleNames.map( moduleName => {
 	let package = NAMESPACE + "/" + moduleName
 	let url = BASE_URL + package
@@ -359,8 +362,12 @@ moduleNames.map( moduleName => {
 	head.innerText = moduleName
 	//head.append(nameElm)
 	
+	let fetching = false
+	
 	moduleElm.onclick = async function run() {
-		this.onclick = null
+		if (fetching) return;
+		
+		fetching = true
 		
 		classList.add( "loading" )
 		
@@ -372,7 +379,7 @@ moduleNames.map( moduleName => {
 		classList.remove( "loading" )
 		
 		if (! json) {
-			this.onclick = run
+			fetching = false
 			popup( url, "Response error" );
 			return
 		}
@@ -385,6 +392,10 @@ moduleNames.map( moduleName => {
 		head.append( modifiedElm )
 		
 		appendVersion(moduleElm, versions, npmBase)
+		
+		let c = urlParams.get("copy")
+	
+		idElm( cleanId(c), moduleElm ).click()
 	}
 	
 	moduleElm.append( head )
@@ -456,17 +467,16 @@ function getWithExpiry(key) {
 }
 
 
-const urlParams = new URLSearchParams(window.location.search);
-let idElm = (v,e=moduleElms) => e.querySelector( "#" + v )
 
 urlParams.getAll("fetch").forEach( async v => {
 	let m = idElm( v )
 	
-	await m.click()
+	console.log(0)
+	m.click()
 	
-	let c=urlParams.get("copy")
+	console.log(1)
 	
-	idElm( cleanId(c), m )?.click()
+	
 } )
 
 
