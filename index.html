@@ -75,12 +75,47 @@ div {
 	font-size: smaller;
 }
 
+@keyframes placeHolderShimmer{
+    0%{
+        background-position: -468px 0
+    }
+    100%{
+        background-position: 468px 0
+    }
+}
+
 .loading {
 	opacity: .5;
 	transform: scale(.98);
 	filter: invert(50%) brightness(25%);
 	background: hsl(0, 0%, 6%);
 	cursor: wait;
+	position: relative;
+}
+
+.loading:after {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	
+	top: -.5em;
+	left: -.5em;
+	right: -.5em;
+	bottom: -.5em;
+	
+	border-radius: inherit;
+	
+	filter: invert(100%) blur(5px);
+	
+	animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderShimmer;
+    animation-timing-function: linear;
+    //background: blue;
+    background: linear-gradient(to right, transparent 8%, hsl(0,0%,100%) 18%, transparent 33%);
+    background-size: 800px 1000px;
+    
 }
 
 small {
@@ -101,7 +136,7 @@ a {
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.3.2</span>
+	<span>v0.3.3</span>
 </div>
 
 
@@ -376,6 +411,8 @@ moduleNames.map( moduleName => {
 			"Accept": "application/vnd.npm.install-v1+json"
 		} )
 		
+		//await new Promise( r => setTimeout(r, 10_000) )
+		
 		classList.remove( "loading" )
 		
 		if (! json) {
@@ -471,11 +508,7 @@ function getWithExpiry(key) {
 urlParams.getAll("fetch").forEach( async v => {
 	let m = idElm( v )
 	
-	console.log(0)
 	m.click()
-	
-	console.log(1)
-	
 	
 } )
 
