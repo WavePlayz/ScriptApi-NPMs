@@ -7,11 +7,12 @@
 <style>
 
 html {
-	background: hsl(0, 0%, 10%);
+	background: hsl(0, 0%, 8%);
 	color: #ddd;
 	font-family: monospace;
 	line-height: 1.625;
 	padding: 10% 5%;
+	font-size: 3.5vw;
 }
 
 body {
@@ -21,28 +22,28 @@ body {
 	justify-content: center;
 	margin: 0;
 	min-height: 100%;
-	gap: 3vh;
+	gap: 2.5em;
 }
 
 div {
-	border-radius: .75rem;
+	border-radius: .75em;
 }
 
 #moduleElms {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 1.75vh;
+	gap: 1.75em;
 }
 
 #moduleElms > div {
 	display: flex;
 	flex-direction: column;
 	//gap: .75em;
-	background: hsl(0, 0%, 14%);
+	background: hsl(0, 0%, 16%);
 	box-shadow: 
-		-2px 2px 0px hsl(0, 0%, 12%) inset,
-		2px -2px 0px hsl(0, 0%, 16%) inset,
+		-2px 2px 0px hsl(0, 0%, 14%) inset,
+		2px -2px 0px hsl(0, 0%, 18%) inset,
 		0 0 5px 2.5px hsl(0, 0%, 10%)
 	;
 	transition: 750ms;
@@ -81,13 +82,16 @@ small {
 	opacity: .5;
 }
 
+a {
+	color: #2fd;
+}
 
 </style>
 <body>
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.2.2</span>
+	<span>v0.2.0</span>
 </div>
 
 <div id=actions>
@@ -118,7 +122,7 @@ function popup (content, head) {
 			//justifyContent: "center"
 			gap: "1em",
 			zIndex: 2,
-			//padding: "1em"
+			padding: "1em"
 		})
 		
 		popup.stack = a
@@ -130,9 +134,10 @@ function popup (content, head) {
 	Object.assign( b.style, {
 		background: "black",
 		padding: ".75em",
-		margin: ".5em",
+		//margin: ".5em",
 		transition: "250ms",
-		opacity: 0
+		opacity: 0,
+		
 	})
 	b.innerHTML = (head ? "<small>"+ head +"</small><br>" : "") + content
 	
@@ -319,7 +324,7 @@ moduleNames.map( moduleName => {
 	//head.append(nameElm)
 	
 	moduleElm.onclick = async function run() {
-		if (classList.contains("loading")) return;
+		this.onclick = null
 		
 		classList.add( "loading" )
 		
@@ -330,10 +335,11 @@ moduleNames.map( moduleName => {
 		
 		classList.remove( "loading" )
 		
-		if (! json) 
-			return popup( url, "Response error" );
-		
-		this.onclick = null
+		if (! json) {
+			this.onclick = run
+			popup( url, "Response error" );
+			return
+		}
 		
 		let { modified, versions } = json
 		
