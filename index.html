@@ -12,7 +12,7 @@ html {
 	font-family: monospace;
 	line-height: 1.625;
 	padding: 10% 5%;
-	font-size: calc(12px + 0.390625vw);
+	font-size: calc(12.5px + 0.390625vw);
 }
 
 body {
@@ -25,8 +25,12 @@ body {
 	gap: 2.5em;
 }
 
+body > small {
+	text-align: center;
+}
+
 div {
-	border-radius: .75em;
+	border-radius: 1em;
 }
 
 #moduleElms {
@@ -76,6 +80,7 @@ div {
 	transform: scale(.98);
 	filter: invert(50%) brightness(25%);
 	background: hsl(0, 0%, 6%);
+	cursor: wait;
 }
 
 small {
@@ -96,15 +101,13 @@ a {
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.3.0</span>
+	<span>v0.3.1</span>
 </div>
 
-<small>
 
-<li>Fetched data saved locally in browser for 2 days</li>
-<li>use <b>"Clear cache"</b> to be able to fetch new updates</li>
+<small>Fetched data saved locally in browser for 2 days
+use <b>"Clear cache"</b> to be able to fetch new updates</small>
 
-</small>
 
 <div id=actions>
 	<a href="#" onclick="localStorage.length && (localStorage.clear() || popup('Cleared cache')) ">Clear cache</a>
@@ -112,6 +115,15 @@ a {
 </div>
 
 <div id=moduleElms></div>
+
+<small><small>
+Get API<br>
+?fetch=<b>{module_name}</b> - to fetch directly without click<br>
+?copy=<b>{version_name}</b> - to copy npm version of fetched module<br>
+<br>
+example instant server preview copy <br>
+<b><i>url</i></b>?fetch=server&<span>copy</span>=previewbeta
+</small></small>
 
 <script>
 
@@ -294,6 +306,8 @@ function buildVersionHead(i, tarballLink) {
 function buildVersionNpm (npmString) {
 	let versionElm = elm( "span" )
 	versionElm.innerHTML = npmString
+	versionElm.style.cursor = "copy"
+	
 	versionElm.onclick = () => 
 		copy( npmString )
 			.then( () => popup( npmString, "Copied") )
@@ -302,6 +316,8 @@ function buildVersionNpm (npmString) {
 			);
 	return versionElm
 }
+
+let cleanId = v => v.toLowerCase().replaceAll(" ", "" );
 
 function appendVersion (moduleElm, versions, npmBase) {
 	let versionIndex = indexVersion( versions )
@@ -317,9 +333,13 @@ function appendVersion (moduleElm, versions, npmBase) {
 		
 		let npmString = npmBase + version
 		
-		moduleElm.append( buildVersionHead(i, data.dist.tarball) )
+		let versionHead = buildVersionHead(i, data.dist.tarball) 
+		moduleElm.append( versionHead )
 		
-		moduleElm.append( buildVersionNpm(npmString) )
+		let versionElm = buildVersionNpm(npmString)
+		versionElm.setAttribute( "id", cleanId(versionHead.querySelector( "b" ).innerText) )
+		
+		moduleElm.append( versionElm )
 	} 
 }
 
@@ -329,10 +349,13 @@ moduleNames.map( moduleName => {
 	let npmBase = "npm i " + package + "@"
 	
 	let moduleElm = elm()
+	moduleElm.setAttribute( "id", moduleName )
 	let { classList } = moduleElm
 	
 	
 	let head = elm("b")
+	head.style.cursor = "pointer"
+	
 	head.innerText = moduleName
 	//head.append(nameElm)
 	
@@ -431,6 +454,21 @@ function getWithExpiry(key) {
 	}
 	return item.value
 }
+
+
+const urlParams = new URLSearchParams(window.location.search);
+let idElm = (v,e=moduleElms) => e.querySelector( "#" + v )
+
+urlParams.getAll("fetch").forEach( async v => {
+	let m = idElm( v )
+	
+	await m.click()
+	
+	let c=urlParams.get("copy")
+	
+	idElm( cleanId(c), m )?.click()
+} )
+
 
 </script>
 </body>
