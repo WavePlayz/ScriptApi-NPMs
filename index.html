@@ -86,15 +86,28 @@ a {
 	color: #2fd;
 }
 
+#actions {
+	display: flex;
+	gap: 2em;
+}
+
 </style>
 <body>
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.2.0</span>
+	<span>v0.3.0</span>
 </div>
 
+<small>
+
+<li>Fetched data saved locally in browser for 2 days</li>
+<li>use <b>"Clear cache"</b> to be able to fetch new updates</li>
+
+</small>
+
 <div id=actions>
+	<a href="#" onclick="localStorage.length && (localStorage.clear() || popup('Cleared cache')) ">Clear cache</a>
 	<a href="#" onclick="fetchAll()">Fetch all</a>
 </div>
 
@@ -362,18 +375,25 @@ async function fetchAll (callback) {
 	}
 }
 
+const MS_IN_2_DAYS = 1000 * 60 * 60 * 24 * 2 
 
 async function fetchJson( url, headers ) {
-	let json = sessionStorage.getItem(url)
+	let json = //sessionStorage.getItem(url)
+	getWithExpiry(url)
 	
-	if (json) return JSON.parse( json )
+	if (json) {
+		console.warn( "loading cached value" )
+		return json
+	}
 	
 	try {
 		let res = await fetch( url, { headers } )
 		
 		json = await res.json()
 		
-		sessionStorage.setItem( url, JSON.stringify(json) )
+		//sessionStorage.setItem( url, JSON.stringify(json) )
+		
+		setWithExpiry(url, json, MS_IN_2_DAYS )
 	} catch (err) {
 		console.error(err)
 	}
@@ -381,6 +401,36 @@ async function fetchJson( url, headers ) {
 	return json 
 }
 
+
+function setWithExpiry(key, value, ttl) {
+	const now = new Date()
+
+	// `item` is an object which contains the original value
+	// as well as the time when it's supposed to expire
+	const item = {
+		value: value,
+		expiry: now.getTime() + ttl,
+	}
+	localStorage.setItem(key, JSON.stringify(item))
+}
+
+function getWithExpiry(key) {
+	const itemStr = localStorage.getItem(key)
+	// if the item doesn't exist, return null
+	if (!itemStr) {
+		return null
+	}
+	const item = JSON.parse(itemStr)
+	const now = new Date()
+	// compare the expiry time of the item with the current time
+	if (now.getTime() > item.expiry) {
+		// If the item is expired, delete the item from storage
+		// and return null
+		localStorage.removeItem(key)
+		return null
+	}
+	return item.value
+}
 
 </script>
 </body>
