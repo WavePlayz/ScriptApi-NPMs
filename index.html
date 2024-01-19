@@ -302,22 +302,24 @@ const moduleNames = [
 	"vanilla-data",
 	"common"
 ]
-const STABLE_REG = /^(\d+\.){2}\d+$/g
-const STABLE_BETA_REG = /^(\d+\.){2}\d+.*stable$/g
-const PREVIEW_REG = /^(\d+\.){2}\d+-rc.*preview/g
-const PREVIEW_BETA_REG = /^(\d+\.){2}\d+-beta.*preview/g
+const STABLE_REG = /^(\d+\.){2}\d+$/gy
+const STABLE_BETA_REG = /^(\d+\.){2}\d+.*stable$/gy
+const PREVIEW_REG = /^(\d+\.){2}\d+-rc.*preview/gy
+const PREVIEW_BETA_REG = /^(\d+\.){2}\d+-beta.*preview/gy
 
 const VERSION_REGS = [ STABLE_REG, STABLE_BETA_REG, PREVIEW_REG, PREVIEW_BETA_REG ]
 
-const getVersionIndex = v => VERSION_REGS.findIndex( re => re.test( v ) )
+const getVersionIndex = v => VERSION_REGS.findIndex( re => {
+	re.lastIndex = 0
+	
+	return re.test( v ) 
+})
 
 function indexVersion (versions) {
 	let versionIndex = []
 	
 	for (let version in versions) {
 		let index = getVersionIndex(version)
-		
-		getVersionIndex(version)
 		
 		if (index >= 0) versionIndex[index] = { version, data: versions[version] }
 	}
