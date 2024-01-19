@@ -136,7 +136,7 @@ a {
 
 <div id=info>
 	<b>WavePlayz</b>
-	<span>v0.3.3</span>
+	<span>v0.3.4</span>
 </div>
 
 
@@ -316,7 +316,9 @@ function indexVersion (versions) {
 	
 	for (let version in versions) {
 		let index = getVersionIndex(version)
-			
+		
+		getVersionIndex(version)
+		
 		if (index >= 0) versionIndex[index] = { version, data: versions[version] }
 	}
 	
